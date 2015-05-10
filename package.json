@@ -2,13 +2,13 @@
   "name": "pgjs-camera",
   "version": "0.1.0",
   "description": "pgjs-camera",
-  "private": true,
   "scripts": {
     "rebuild": "node-gyp rebuild",
     "start": "node server.js"
   },
-  "author": "pgjs",
+  "author": "plategatejs",
   "gypfile": true,
+  "license": "MIT",
   "dependencies": {
     "express": "^4.12.3"
   }
