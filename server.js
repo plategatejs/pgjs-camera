@@ -1,22 +1,20 @@
-var express = require('express');
-var path = require('path');
-var fs = require('fs');
+var express = require('express'),
+    config = require('config'),
+    fs = require('fs');
 
-// setting environment type
-if (!process.env.hasOwnProperty('NODE_ENV') || ['production', 'development'].indexOf(process.env['NODE_ENV']) === -1) {
-    process.env['NODE_ENV'] = 'production';
-}
+// setting camera native module up
+var properties = {
+    width: config.get('camera.width'),
+    height: config.get('camera.height'),
+    fps: config.get('camera.fps')
+};
 
-global.ENV = process.env['NODE_ENV'];
+var camera = require('./build/Release/camera.node');
+camera.init(properties);
 
-// loading camera native module
-var camera = require(path.resolve('build', ENV === 'development' ? 'Debug' : 'Release', 'camera.node'));
-
-camera.init({
-    width: 640,
-    height: 480,
-    fps: 15.0
-});
+// setting Express up
+var IMAGE_FILE = '/dev/shm/image.jpg';
+var port = config.get('server.port');
 
 var app = express();
 
@@ -28,8 +26,8 @@ app.get('/', function (req, res) {
         'pragma': 'no-cache'
     });
 
-    var stream = fs.createReadStream(path.resolve('/dev/shm/image.jpg'));
+    var stream = fs.createReadStream(IMAGE_FILE);
     stream.pipe(res);
 });
 
-app.listen(1337);
+app.listen(port);

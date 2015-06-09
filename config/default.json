@@ -1,0 +1,10 @@
+{
+  "camera": {
+    "width": 640,
+    "height": 480,
+    "fps": 15.0
+  },
+  "server": {
+    "port": 8080
+  }
+}
