@@ -1,21 +1,14 @@
 var express = require('express'),
-    config = require('config'),
-    fs = require('fs');
+    config = require('config');
 
-// setting camera native module up
-var properties = {
-    width: config.get('camera.width'),
-    height: config.get('camera.height'),
-    fps: config.get('camera.fps')
-};
+// setting camera module up
+var Camera = require('./lib/camera');
+var camera = new Camera();
 
-var camera = require('./build/Release/camera.node');
-camera.init(properties);
+camera.init();
 
 // setting Express up
-var IMAGE_FILE = '/dev/shm/image.jpg';
 var port = config.get('server.port');
-
 var app = express();
 
 app.get('/', function (req, res) {
@@ -26,8 +19,7 @@ app.get('/', function (req, res) {
         'pragma': 'no-cache'
     });
 
-    var stream = fs.createReadStream(IMAGE_FILE);
-    stream.pipe(res);
+    camera.getImage().pipe(res);
 });
 
 app.listen(port);

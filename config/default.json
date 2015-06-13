@@ -2,7 +2,9 @@
   "camera": {
     "width": 640,
     "height": 480,
-    "fps": 15.0
+    "fps": 15.0,
+    "imagePath": "/dev/shm/image.jpg",
+    "imagePathTemp": "/dev/shm/image.temp.jpg"
   },
   "server": {
     "port": 8080

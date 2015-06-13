@@ -1,39 +1,26 @@
-#include <node.h>
-#include <iostream>
-#include <thread>
 #include <functional>
+#include <iostream>
+#include <sstream>
+#include <thread>
+#include <string>
+#include <node.h>
 
 #include "opencv2/highgui/highgui.hpp"
 
 using namespace v8;
 
 class CameraProperties {
-    private:
-    const int DEFAULT_WIDTH = 320;
-    const int DEFAULT_HEIGHT = 240;
-    const double DEFAULT_FPS = 0.5;
-
     public:
     int width;
     int height;
     double fps;
-
-    CameraProperties():
-        width(DEFAULT_WIDTH),
-        height(DEFAULT_HEIGHT),
-        fps(DEFAULT_FPS)
-        {}
+    std::string imagePath;
+    std::string imagePathTemp;
 };
 
 CameraProperties properties;
 
 void CapturingThread() {
-    std::cout << "Camera properties..." << std::endl;
-    std::cout << "width: " << properties.width << std::endl;
-    std::cout << "height: " << properties.height << std::endl;
-    std::cout << "fps: " << properties.fps << std::endl;
-    std::cout << "Starting." << std::endl;
-
     cv::VideoCapture cap(0);
 
     cap.set(CV_CAP_PROP_FRAME_WIDTH, properties.width);
@@ -46,9 +33,13 @@ void CapturingThread() {
         bool success = cap.read(frame);
 
         if (success) {
-            cv::imwrite("/dev/shm/image.temp.jpg", frame);
-            system("mv -f /dev/shm/image.temp.jpg /dev/shm/image.jpg");
-            std::cout << "captured" << std::endl;
+            cv::imwrite(properties.imagePathTemp, frame);
+
+            std::stringstream ss;
+            ss << "mv -f " << properties.imagePathTemp << " " << properties.imagePath;
+            system(ss.str().c_str());
+
+            std::cout << "Captured image" << std::endl;
         }
     }
 }
@@ -80,9 +71,19 @@ void InitMethod(const FunctionCallbackInfo<Value>& args) {
         if (object->Has(String::NewFromUtf8(isolate, "fps"))) {
             properties.fps = object->Get(String::NewFromUtf8(isolate, "fps"))->NumberValue();
         }
-    }
 
-    std::cout << "camera properties" << std::endl;
+        // image path
+        if (object->Has(String::NewFromUtf8(isolate, "imagePath"))) {
+            String::Utf8Value imagePath(object->Get(String::NewFromUtf8(isolate, "imagePath"))->ToString());
+            properties.imagePath = std::string(*imagePath);
+        }
+
+        // image temporary path
+        if (object->Has(String::NewFromUtf8(isolate, "imagePathTemp"))) {
+            String::Utf8Value imagePathTemp(object->Get(String::NewFromUtf8(isolate, "imagePathTemp"))->ToString());
+            properties.imagePathTemp = std::string(*imagePathTemp);
+        }
+    }
 
     std::thread thread(CapturingThread);
     thread.detach();
